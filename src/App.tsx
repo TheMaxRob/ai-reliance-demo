@@ -190,6 +190,76 @@ export default function App() {
       animation: bgFlashGreen 0.6s ease;
     }
   `;
+  
+  const Leaderboard = ({ theme }: { theme: "light" | "dark" }) => {
+    const isDark = theme === "dark";
+
+    return (
+      <div
+        style={{
+          marginTop: 30,
+          padding: 20,
+          background: isDark ? "#2a2535" : "#f4f4f4",
+          borderRadius: 8,
+          border: `2px solid ${isDark ? "#3d3750" : "#ddd"}`,
+          color: isDark ? "white" : "#222",
+        }}
+      >
+        <h3 style={{ margin: 0, marginBottom: 15 }}>🏆 Current Leaderboard</h3>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ fontSize: 18, fontWeight: "bold" }}>1. 1700 points</div>
+          <div style={{ fontSize: 18, fontWeight: "bold" }}>2. 1500 points</div>
+          <div style={{ fontSize: 18, fontWeight: "bold" }}>3. 1400 points</div>
+        </div>
+      </div>
+    );
+  };
+
+
+  const NavBar = ({ theme, score, setTheme }: {
+  theme: "light" | "dark";
+  score: number;
+  setTheme: (t: "light" | "dark") => void;
+}) => {
+  const isDark = theme === "dark";
+
+  return (
+    <div
+      style={{
+        width: "95%",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingRight: 40,
+        marginBottom: 30,
+      }}
+    >
+      {/* Left — MINI LEADERBOARD */}
+      <div style={{ textAlign: "center", marginRight: 30 }}>
+        <div style={{ fontSize: 18, fontWeight: "bolder" }}>🏆 Current Leaderboard (Top 3)</div>
+        <div style={{ fontSize: 14, opacity: 0.8, fontWeight: "bold" }}>
+          1st: 1700 • 2nd: 1500 • 3rd: 1400
+        </div>
+      </div>
+
+      {/* CENTER — SCORE */}
+      <div style={{ fontSize: 26, fontWeight: "bold" }}>
+        Score: {score}
+      </div>
+
+      { /* RIGHT – THEME TOGGLE */ }
+      <ThemedButton
+        active={false}
+        theme={theme}
+        onClick={() => setTheme(isDark ? "light" : "dark")}
+      >
+        Toggle {isDark ? "Light" : "Dark"}
+      </ThemedButton>
+    </div>
+  );
+};
+
 
   async function getAIAnswer(claim: string) {
     try {
@@ -327,28 +397,57 @@ export default function App() {
 
   // Intro screen
   if (showIntro) {
+    const isDark = theme === "dark";
+
     return (
-      <div style={{
-        width: "100vw",
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 40,
-        textAlign: "center"
-      }}>
+      <div
+        style={{
+          width: "100vw",
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 40,
+          textAlign: "center",
+          background: isDark ? "#1b1924" : "#fafafa",
+          color: isDark ? "white" : "#222",
+          fontFamily: "sans-serif",
+        }}
+      >
         <div style={{ maxWidth: 700 }}>
-          <h1>Welcome to the Experiment</h1>
-          <p style={{ marginTop: 20, fontSize: 18 }}>
-            You will see several True/False claims. Rate your confidence for each answer from 1 (not confident) to 7 (very confident). Confidence rating doesn't affect your score, so please be honest!
+          <h1 style={{ color: isDark ? "white" : "#222" }}>
+            Welcome to the Experiment
+          </h1>
+
+          <p style={{ marginTop: 20, fontSize: 18, color: isDark ? "#ddd" : "#333" }}>
+            You will see several True/False claims. Rate your confidence for each answer
+            from 1 (not confident) to 7 (very confident). Confidence rating doesn't
+            affect your score, so please be honest!
             <br /><br />
-            Your goal is simply <strong>to answer as many questions correct as possible.</strong>
+            Your goal is simply <strong>to answer as many questions correct as possible.
+            You get 100 points per correct answer (2000 possible).</strong>
             <br /><br />
-            You will have the option to consult an AI during the questions. You are being tested on your <strong>knowledge</strong> and your <strong>ability to utilize AI effectively.</strong> 
+            You will likely not know the answer to most of these questions immediately.
+            You will have the option to consult an AI during the questions. You are being
+            tested on your <strong>knowledge</strong> and your <strong>ability to utilize AI effectively
+            to reason an answer to a difficult question.</strong>
           </p>
+
+          <Leaderboard theme={theme} />
+
           <button
             onClick={() => setShowIntro(false)}
-            style={{ marginTop: 30, padding: "12px 30px", fontSize: 18 }}
+            style={{
+              marginTop: 30,
+              padding: "12px 30px",
+              fontSize: 18,
+              borderRadius: 8,
+              border: "none",
+              cursor: "pointer",
+              background: isDark ? "#46415c" : "#e3e1f0",
+              color: isDark ? "white" : "#222",
+              transition: "0.2s",
+            }}
           >
             Start
           </button>
@@ -357,15 +456,17 @@ export default function App() {
     );
   }
 
+
   const bg = theme === "dark" ? "#1b1924" : "#fafafa";
   const text = theme === "dark" ? "white" : "#222";
 
   return (
     <div
       style={{
-        padding: 40,
         width: "100vw",
         minHeight: "100vh",
+        paddingLeft: 20,
+        paddingTop: 5,
         background: bg,
         color: text,
         fontFamily: "sans-serif",
@@ -373,31 +474,11 @@ export default function App() {
       }}
     >
       <style>{globalStyles}</style>
-
-      {/* SCORE */}
-      <div style={{
-        position: "absolute",
-        top: 20,
-        left: "50%",
-        transform: "translateX(-50%)",
-        fontSize: 28,
-        fontWeight: "bold"
-      }}>
-        Score: {score}
-      </div>
-
-      {/* THEME TOGGLE */}
-      <ThemedButton
-        active={false}
-        theme={theme}
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        style={{ position: "absolute", top: 20, right: 80 }}
-      >
-        Toggle {theme === "dark" ? "Light" : "Dark"} Mode
-      </ThemedButton>
+      
+      <NavBar theme={theme} score={score} setTheme={setTheme}/>
 
       {/* CLAIM */}
-      <h3>Claim:</h3>
+      <h3 style={{ marginTop: 40 }}>Claim:</h3>
       <p style={{ fontSize: 20 }}>{trial.claim}</p>
 
       <div style={{ display: "flex", gap: 30, marginTop: 20, flexWrap: "wrap" }}>
@@ -470,26 +551,38 @@ export default function App() {
           </div>
         </div>
 
-        {/* RIGHT SIDE — AI ANSWER ONLY */}
-        {trialIndex < 10 && aiRevealed && (
-          <div style={{
+        {/* RIGHT SIDE PANEL — LEADERBOARD + (optional AI answer) */}
+        <div
+          style={{
             flex: 1,
             minWidth: 320,
             borderLeft: "1px solid #666",
-            paddingLeft: 20
-          }}>
-            <div style={{
-              padding: 15,
-              border: "1px solid #ccc",
-              borderRadius: 8,
-              background: theme === "dark" ? "#2a2535" : "#fff",
-              minHeight: 60,
-              whiteSpace: "pre-wrap",
-            }}>
+            paddingLeft: 20,
+            display: "flex",
+            flexDirection: "column",
+            gap: 20,
+          }}
+        >
+
+          {/* AI Answer only shows during first 10 trials when revealed */}
+          {trialIndex < 10 && aiRevealed && (
+            <div
+              style={{
+                padding: 15,
+                marginRight: 30,
+                border: "1px solid #ccc",
+                borderRadius: 8,
+                background: theme === "dark" ? "#2a2535" : "#fff",
+                minHeight: 60,
+                whiteSpace: "pre-wrap",
+                color: theme === "dark" ? "white" : "#222",
+              }}
+            >
               {aiLoading ? "Loading AI response..." : aiAnswer}
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
       </div>
     </div>
   );
