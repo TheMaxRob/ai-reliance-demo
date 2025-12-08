@@ -11,7 +11,7 @@ const CLAIMS = [
   { id: 8, claim: "A basketball will hit the ground before a tennis ball when dropped at the same height.", correctAnswer: "false" },
   { id: 9, claim: "A raincloud weighs more than an 18-wheeler truck.", correctAnswer: "true" },
   { id: 10, claim: "Human bodies contain equal numbers of bacterial and human cells.", correctAnswer: "false" },
-  { id: 11, claim: "Most humans can distinguish about 10 million different colors.", correctAnswer: "false" },
+  { id: 11, claim: "Most humans can distinguish about 2 million different colors.", correctAnswer: "false" },
   { id: 12, claim: "Almost all the dust in your home comes from dead human skin.", correctAnswer: "false" },
   { id: 13, claim: "Humans emit less carbon dioxide walking one mile than a car traveling the same distance.", correctAnswer: "true" },
   { id: 14, claim: "The average person speaks over 16,000 words per day.", correctAnswer: "false" },
@@ -117,7 +117,6 @@ function ThemedButton({
 // ---------------------------
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 interface TrialResult {
   trial: number;
@@ -170,29 +169,28 @@ export default function App() {
 
   async function getAIAnswer(claim: string) {
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch('/api/get-ai-answer', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini', // Using the cheaper model
-          messages: [{
-            role: 'user',
-            content: `Is this claim true or false? Answer with just "True" or "False" followed by a brief 1-2 sentence explanation.\n\nClaim: ${claim}`
-          }],
-          temperature: 0.3,
-          max_tokens: 150
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claim })
       });
 
+      // Check if response is ok before parsing
       if (!response.ok) {
-        throw new Error('API request failed');
+        const errorText = await response.text();
+        console.error('API Error:', response.status, errorText);
+        throw new Error(`API request failed: ${response.status}`);
       }
 
-      const data = await response.json();
-      return data.choices[0].message.content;
+      // Check if response has content
+      const text = await response.text();
+      if (!text) {
+        throw new Error('Empty response from API');
+      }
+
+      const data = JSON.parse(text);
+      return data.answer || 'Error: No answer received';
+      
     } catch (error) {
       console.error('Error getting AI answer:', error);
       return 'Error: Unable to get AI response. Please try again.';
