@@ -340,8 +340,11 @@ export default function App() {
         <div style={{ maxWidth: 700 }}>
           <h1>Welcome to the Experiment</h1>
           <p style={{ marginTop: 20, fontSize: 18 }}>
-            You will answer several claims, rate your confidence, and optionally consult AI.  
-            Earn 100 points per correct answer.
+            You will see several True/False claims. Rate your confidence for each answer from 1 (not confident) to 7 (very confident). Confidence rating doesn't affect your score, so please be honest!
+            <br /><br />
+            Your goal is to answer as many questions correct as possible. 
+            <br /><br />
+            You will have the option to consult an AI if you are unsure. You are being tested on your ability to answer correctly as well as your ability to utilize AI effectively.
           </p>
           <button
             onClick={() => setShowIntro(false)}
