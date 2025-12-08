@@ -313,7 +313,7 @@ export default function App() {
     return (
       <div style={{ width: "100vw", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", padding: 40, textAlign: "center" }}>
         <div style={{ maxWidth: 700 }}>
-          <h1>Welcome to the AI Reliance Experiment</h1>
+          <h1>Welcome to the Experiment</h1>
           <p style={{ marginTop: 20, fontSize: 18 }}>
             Welcome to the experiment! Thank you for participating.
             <br /><br />
@@ -368,91 +368,95 @@ export default function App() {
       <h3>Claim:</h3>
       <p style={{ fontSize: 20 }}>{trial.claim}</p>
 
-      <div style={{ display: "flex", gap: 30, marginTop: 20 }}>
-        <div style={{ flex: 1 }}>
-          
-          {/* True/False */}
-          <p><strong>Your Answer:</strong></p>
-          <div>
-            <ThemedButton
-              active={initialAnswer === true}
-              theme={theme}
-              onClick={() => setInitialAnswer(true)}
-            >
-              True
-            </ThemedButton>
+      <div style={{ display: "flex", gap: 30, marginTop: 20, flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 300 }}>
+        
+        {/* True/False */}
+        <p><strong>Your Answer:</strong></p>
+        <div>
+          <ThemedButton
+            active={initialAnswer === true}
+            theme={theme}
+            onClick={() => setInitialAnswer(true)}
+          >
+            True
+          </ThemedButton>
 
-            <ThemedButton
-              active={initialAnswer === false}
-              theme={theme}
-              onClick={() => setInitialAnswer(false)}
-            >
-              False
-            </ThemedButton>
-          </div>
-
-          <div style={{ display: "flex", flex: 1, flexDirection: "column"}}>
-            {/* Confidence */}
-            <div>
-              <p style={{ marginTop: 20 }}><strong>Your Confidence (1–7):</strong></p>
-              {[1,2,3,4,5,6,7].map(num => (
-                <ThemedButton
-                  key={num}
-                  active={initialConfidence === num}
-                  theme={theme}
-                  onClick={() => setInitialConfidence(num)}
-                >
-                  {num}
-                </ThemedButton>
-              ))}
-            </div>
-
-            {/* Submit */}
-            <ThemedButton
-              active={false}
-              theme={theme}
-              disabled={isSubmitting || initialAnswer === null || initialConfidence === null}
-              onClick={submitTrial}
-              style={{ marginTop: 25, maxWidth: 150 }}
-            >
-              {isSubmitting ? "Submitting..." : "Submit Answer"}
-            </ThemedButton>
-          </div>
+          <ThemedButton
+            active={initialAnswer === false}
+            theme={theme}
+            onClick={() => setInitialAnswer(false)}
+          >
+            False
+          </ThemedButton>
         </div>
 
-
-        {/* AI Help */}
-        {trialIndex < 10 && (
-          <div style={{ flex: 1, borderLeft: "1px solid #ccc", paddingLeft: 20 }}>
-            {!aiRevealed ? (
-              <>
-                <p><strong>Optional AI Help:</strong></p>
-                <ThemedButton
-                  active={false}
-                  theme={theme}
-                  onClick={revealAI}
-                  style={{ padding: "8px 12px" }}
-                >
-                  Reveal AI's Answer
-                </ThemedButton>
-              </>
-            ) : (
-              <>
-                <p><strong>AI Answer:</strong></p>
-                <div style={{ 
-                  padding: 15, 
-                  border: "1px solid #ccc", 
-                  borderRadius: 8,
-                  background: theme === "dark" ? "#2a2535" : "#fff",
-                  minHeight: 60
-                }}>
-                  {aiLoading ? "Loading AI response..." : aiAnswer}
-                </div>
-              </>
-            )}
+        <div style={{ display: "flex", flex: 1, flexDirection: "column"}}>
+          {/* Confidence */}
+          <div>
+            <p style={{ marginTop: 20 }}><strong>Your Confidence (1–7):</strong></p>
+            {[1,2,3,4,5,6,7].map(num => (
+              <ThemedButton
+                key={num}
+                active={initialConfidence === num}
+                theme={theme}
+                onClick={() => setInitialConfidence(num)}
+              >
+                {num}
+              </ThemedButton>
+            ))}
           </div>
-        )}
+
+          {/* Submit */}
+          <ThemedButton
+            active={false}
+            theme={theme}
+            disabled={isSubmitting || initialAnswer === null || initialConfidence === null}
+            onClick={submitTrial}
+            style={{ marginTop: 25, maxWidth: 150 }}
+          >
+            {isSubmitting ? "Submitting..." : "Submit Answer"}
+          </ThemedButton>
+        </div>
       </div>
+
+
+  {/* AI Help */}
+  {trialIndex < 10 && (
+    <div style={{ flex: 1, minWidth: 300, borderLeft: "1px solid #ccc", paddingLeft: 20 }}>
+      {!aiRevealed ? (
+        <>
+          <p><strong>Optional AI Help:</strong></p>
+          <ThemedButton
+            active={false}
+            theme={theme}
+            onClick={revealAI}
+            style={{ padding: "8px 12px" }}
+          >
+            Reveal AI's Answer
+          </ThemedButton>
+        </>
+      ) : (
+        <>
+          <p><strong>AI Answer:</strong></p>
+          <div style={{ 
+            padding: 15, 
+            border: "1px solid #ccc", 
+            borderRadius: 8,
+            background: theme === "dark" ? "#2a2535" : "#fff",
+            minHeight: 60,
+            wordWrap: "break-word",
+            overflowWrap: "break-word",
+            whiteSpace: "pre-wrap",
+            maxWidth: "100%"
+          }}>
+            {aiLoading ? "Loading AI response..." : aiAnswer}
+          </div>
+        </>
+      )}
+    </div>
+  )}
+</div>
     </div>
   );
 }
