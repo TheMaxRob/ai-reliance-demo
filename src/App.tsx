@@ -23,7 +23,9 @@ const CLAIMS = [
   { id: 20, claim: "The average person spends about equal time in REM sleep as in deep sleep.", correctAnswer: "true" },
 ];
 
+// ---------------------------
 // Button Style Helper
+// ---------------------------
 function buttonStyle({
   active,
   theme,
@@ -37,7 +39,6 @@ function buttonStyle({
 }) {
   const isDark = theme === "dark";
 
-  // Base
   let bg = active
     ? isDark ? "#747087" : "#d3d1e0"
     : isDark ? "#46415c" : "#f1f1f5";
@@ -48,13 +49,11 @@ function buttonStyle({
 
   let text = isDark ? "white" : "#222";
 
-  // Hover
   if (hovered && !disabled) {
     bg = isDark ? "#6a6580" : "#e3e1f0";
     border = isDark ? "#8d88a6" : "#c5c2d8";
   }
 
-  // Disabled
   if (disabled) {
     bg = isDark ? "#3a364a" : "#e2e2e2";
     border = "transparent";
@@ -69,14 +68,12 @@ function buttonStyle({
     background: bg,
     color: text,
     cursor: disabled ? "not-allowed" : "pointer",
-    opacity: disabled ? 0.6 : 1,
-    transition: "background 0.15s ease, border 0.15s ease, opacity 0.15s ease",
+    transition: "background 0.2s ease",
   };
 }
 
-
 // ---------------------------
-// Reusable ThemedButton Component
+// Reusable Button Component
 // ---------------------------
 function ThemedButton({
   children,
@@ -85,6 +82,7 @@ function ThemedButton({
   theme,
   onClick,
   style = {},
+  className = "",
 }: {
   children: any;
   active: boolean;
@@ -92,6 +90,7 @@ function ThemedButton({
   theme: "light" | "dark";
   onClick?: () => void;
   style?: any;
+  className?: string;
 }) {
   const [hovered, setHovered] = useState(false);
 
@@ -99,6 +98,7 @@ function ThemedButton({
     <button
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
+      className={className}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -111,9 +111,8 @@ function ThemedButton({
   );
 }
 
-
 // ---------------------------
-// Supabase Types & Utils
+// Supabase Types
 // ---------------------------
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
@@ -136,14 +135,12 @@ function shuffleArray(arr: any[]) {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-
 // ---------------------------
-// Main Component
+// MAIN APP
 // ---------------------------
 export default function App() {
   const shuffledClaims = useMemo(() => shuffleArray(CLAIMS), []);
-
-  const [,setResults] = useState<TrialResult[]>([]);
+  const [, setResults] = useState<TrialResult[]>([]);
   const participantID = useMemo(() => crypto.randomUUID(), []);
   const [showIntro, setShowIntro] = useState(true);
   const [trialIndex, setTrialIndex] = useState(0);
@@ -152,8 +149,9 @@ export default function App() {
   const [initialConfidence, setInitialConfidence] = useState<number | null>(null);
 
   const [aiRevealed, setAiRevealed] = useState(false);
-  const [aiAnswer, setAiAnswer] = useState<string>("");
+  const [aiAnswer, setAiAnswer] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+
   const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   const [score, setScore] = useState(0);
@@ -161,11 +159,37 @@ export default function App() {
   const [tReveal, setTReveal] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // NEW FEEDBACK STATES
+  const [flashType, setFlashType] = useState<"correct" | "incorrect" | null>(null);
+
   const trial = shuffledClaims[trialIndex];
 
-  const bg = theme === "dark" ? "#1b1924" : "#fafafa";
-  const text = theme === "dark" ? "white" : "#222";
+  // Flash class
+  const flashClass =
+    flashType === "correct"
+      ? "flash-green"
+      : flashType === "incorrect"
+      ? "flash-red"
+      : "";
 
+  // Inject keyframes
+  const globalStyles = `
+    @keyframes bgFlashRed {
+      0% { background-color: #ff4f4f; }
+      100% { background-color: inherit; }
+    }
+    @keyframes bgFlashGreen {
+      0% { background-color: #3bd673; }
+      100% { background-color: inherit; }
+    }
+
+    .flash-red {
+      animation: bgFlashRed 0.6s ease;
+    }
+    .flash-green {
+      animation: bgFlashGreen 0.6s ease;
+    }
+  `;
 
   async function getAIAnswer(claim: string) {
     try {
@@ -175,41 +199,29 @@ export default function App() {
         body: JSON.stringify({ claim })
       });
 
-      // Check if response is ok before parsing
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error:', response.status, errorText);
-        throw new Error(`API request failed: ${response.status}`);
-      }
+      if (!response.ok) throw new Error("API error");
 
-      // Check if response has content
-      const text = await response.text();
-      if (!text) {
-        throw new Error('Empty response from API');
-      }
+      const raw = await response.text();
+      if (!raw) throw new Error("Empty AI response");
 
-      const data = JSON.parse(text);
-      return data.answer || 'Error: No answer received';
-      
-    } catch (error) {
-      console.error('Error getting AI answer:', error);
-      return 'Error: Unable to get AI response. Please try again.';
+      const data = JSON.parse(raw);
+      return data.answer || "Error processing response.";
+    } catch {
+      return "Error: Could not load AI answer.";
     }
   }
-
 
   async function revealAI() {
     if (!aiRevealed) {
       setTReveal(Date.now());
       setAiRevealed(true);
       setAiLoading(true);
-      
+
       const answer = await getAIAnswer(trial.claim);
       setAiAnswer(answer);
       setAiLoading(false);
     }
   }
-
 
   async function sendResultsToSupabase(finalResults: TrialResult[]) {
     console.log("Sending to Supabase:", finalResults);
@@ -242,19 +254,15 @@ export default function App() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed:", errorText);
         alert("❌ Failed to submit results");
         return;
       }
 
-      alert("✅ Results submitted successfully!");
-    } catch (err) {
-      console.error(err);
+      alert("✅ Results submitted!");
+    } catch {
       alert("❌ Error submitting results");
     }
   }
-
 
   function submitTrial() {
     if (initialAnswer === null || initialConfidence === null) {
@@ -263,81 +271,92 @@ export default function App() {
     }
 
     const submissionTime = Date.now();
-
     const timeTotal = submissionTime - tQuestionStart;
     const timeBeforeAI = tReveal ? tReveal - tQuestionStart : null;
     const timeAfterAI = tReveal ? submissionTime - tReveal : null;
 
     const isCorrect = initialAnswer === (trial.correctAnswer === "true");
 
-    if (isCorrect) setScore(s => s + 100);
+    // Start flashing
+    setFlashType(isCorrect ? "correct" : "incorrect");
 
-    const trialResult: TrialResult = {
-      trial: trial.id,
-      claim: trial.claim,
-      answer: initialAnswer,
-      confidence: initialConfidence,
-      aiOffered: trialIndex < 10,
-      aiUsed: aiRevealed,
-      isCorrect,
-      timeBeforeAI,
-      timeAfterAI,
-      timeTotal,
-      score: isCorrect ? 100 : 0,
-    };
+    setTimeout(() => setFlashType(null), 600);
 
-    const last = trialIndex + 1 >= shuffledClaims.length;
+    // Delay so user sees flash
+    setTimeout(() => {
+      if (isCorrect) setScore(s => s + 100);
 
-    setResults(prev => {
-      const updated = [...prev, trialResult];
-      if (last) sendResultsToSupabase(updated);
-      return updated;
-    });
+      const trialResult: TrialResult = {
+        trial: trial.id,
+        claim: trial.claim,
+        answer: initialAnswer,
+        confidence: initialConfidence,
+        aiOffered: trialIndex < 10,
+        aiUsed: aiRevealed,
+        isCorrect,
+        timeBeforeAI,
+        timeAfterAI,
+        timeTotal,
+        score: isCorrect ? 100 : 0,
+      };
 
-    if (last) {
-      setIsSubmitting(true);
-    } else {
-      setTrialIndex(i => i + 1);
+      const last = trialIndex + 1 >= shuffledClaims.length;
+
+      setResults(prev => {
+        const updated = [...prev, trialResult];
+        if (last) sendResultsToSupabase(updated);
+        return updated;
+      });
+
+      if (last) {
+        setIsSubmitting(true);
+        return;
+      }
+
+      // Reset for next question
       setInitialAnswer(null);
       setInitialConfidence(null);
       setAiRevealed(false);
       setAiAnswer("");
       setTReveal(null);
       setTQuestionStart(Date.now());
-    }
+      setTrialIndex(i => i + 1);
+
+    }, 1000);
   }
 
-
-  // INTRO SCREEN
+  // Intro screen
   if (showIntro) {
     return (
-      <div style={{ width: "100vw", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", padding: 40, textAlign: "center" }}>
+      <div style={{
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 40,
+        textAlign: "center"
+      }}>
         <div style={{ maxWidth: 700 }}>
           <h1>Welcome to the Experiment</h1>
           <p style={{ marginTop: 20, fontSize: 18 }}>
-            Welcome to the experiment! Thank you for participating.
-            <br /><br />
-            You will be presented with a series of claims. For each claim, decide whether it is true or false.
-            You will also rate your confidence in your answer on a scale from 1 (not confident) to 7 (very confident). 
-            Your confidence score has no impact on your score, so please be honest!
-            Each claim you answer correctly earns you 100 points. The maximum possible is 2000 points.
-            <br /><br />
-            You will also have the option to consult an AI assistant for help with your answer. 
-            You will not lose any points for consulting the AI.
-            <br /><br />
-            Your goal is simply to earn as many points as you can. Good luck!
+            You will answer several claims, rate your confidence, and optionally consult AI.  
+            Earn 100 points per correct answer.
           </p>
-          <button onClick={() => setShowIntro(false)} style={{ marginTop: 30, padding: "12px 30px", fontSize: 18 }}>
+          <button
+            onClick={() => setShowIntro(false)}
+            style={{ marginTop: 30, padding: "12px 30px", fontSize: 18 }}
+          >
             Start
           </button>
         </div>
       </div>
     );
-
   }
 
+  const bg = theme === "dark" ? "#1b1924" : "#fafafa";
+  const text = theme === "dark" ? "white" : "#222";
 
-  // Main
   return (
     <div
       style={{
@@ -347,57 +366,71 @@ export default function App() {
         background: bg,
         color: text,
         fontFamily: "sans-serif",
+        position: "relative"
       }}
     >
-      {/* Score */}
-      <div style={{ position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)", fontSize: 28, fontWeight: "bold" }}>
+      <style>{globalStyles}</style>
+
+      {/* SCORE */}
+      <div style={{
+        position: "absolute",
+        top: 20,
+        left: "50%",
+        transform: "translateX(-50%)",
+        fontSize: 28,
+        fontWeight: "bold"
+      }}>
         Score: {score}
       </div>
 
-      {/* Theme Toggle */}
+      {/* THEME TOGGLE */}
       <ThemedButton
         active={false}
         theme={theme}
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        style={{ position: "absolute", top: 20, right: 20 }}
+        style={{ position: "absolute", top: 20, right: 80 }}
       >
         Toggle {theme === "dark" ? "Light" : "Dark"} Mode
       </ThemedButton>
 
-      {/* Claim */}
+      {/* CLAIM */}
       <h3>Claim:</h3>
       <p style={{ fontSize: 20 }}>{trial.claim}</p>
 
       <div style={{ display: "flex", gap: 30, marginTop: 20, flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: 300 }}>
-        
-        {/* True/False */}
-        <p><strong>Your Answer:</strong></p>
-        <div>
-          <ThemedButton
-            active={initialAnswer === true}
-            theme={theme}
-            onClick={() => setInitialAnswer(true)}
-          >
-            True
-          </ThemedButton>
 
-          <ThemedButton
-            active={initialAnswer === false}
-            theme={theme}
-            onClick={() => setInitialAnswer(false)}
-          >
-            False
-          </ThemedButton>
-        </div>
+        {/* LEFT SIDE */}
+        <div style={{ flex: 1, minWidth: 320 }}>
 
-        <div style={{ display: "flex", flex: 1, flexDirection: "column"}}>
-          {/* Confidence */}
+          {/* True/False */}
+          <p><strong>Your Answer:</strong></p>
           <div>
-            <p style={{ marginTop: 20 }}><strong>Your Confidence (1–7):</strong></p>
-            {[1,2,3,4,5,6,7].map(num => (
+            <ThemedButton
+              className={flashClass}
+              active={initialAnswer === true}
+              theme={theme}
+              onClick={() => setInitialAnswer(true)}
+            >
+              True
+            </ThemedButton>
+
+            <ThemedButton
+              className={flashClass}
+              active={initialAnswer === false}
+              theme={theme}
+              onClick={() => setInitialAnswer(false)}
+            >
+              False
+            </ThemedButton>
+          </div>
+
+          {/* Confidence */}
+          <p style={{ marginTop: 20 }}><strong>Your Confidence (1–7):</strong></p>
+          <div>
+            {[1, 2, 3, 4, 5, 6, 7].map(num => (
               <ThemedButton
                 key={num}
+                className={flashClass}
                 active={initialConfidence === num}
                 theme={theme}
                 onClick={() => setInitialConfidence(num)}
@@ -407,56 +440,53 @@ export default function App() {
             ))}
           </div>
 
-          {/* Submit */}
-          <ThemedButton
-            active={false}
-            theme={theme}
-            disabled={isSubmitting || initialAnswer === null || initialConfidence === null}
-            onClick={submitTrial}
-            style={{ marginTop: 25, maxWidth: 150 }}
-          >
-            {isSubmitting ? "Submitting..." : "Submit Answer"}
-          </ThemedButton>
-        </div>
-      </div>
+          {/* Submit + AI */}
+          <div style={{ display: "flex", gap: 15, alignItems: "center", marginTop: 25 }}>
+            <ThemedButton
+              className={flashClass}
+              active={false}
+              theme={theme}
+              disabled={isSubmitting || initialAnswer === null || initialConfidence === null}
+              onClick={submitTrial}
+              style={{ maxWidth: 150 }}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Answer"}
+            </ThemedButton>
 
-
-  {/* AI Help */}
-  {trialIndex < 10 && (
-    <div style={{ flex: 1, minWidth: 300, borderLeft: "1px solid #ccc", paddingLeft: 20 }}>
-      {!aiRevealed ? (
-        <>
-          <p><strong>Optional AI Help:</strong></p>
-          <ThemedButton
-            active={false}
-            theme={theme}
-            onClick={revealAI}
-            style={{ padding: "8px 12px" }}
-          >
-            Reveal AI's Answer
-          </ThemedButton>
-        </>
-      ) : (
-        <>
-          <p><strong>AI Answer:</strong></p>
-          <div style={{ 
-            padding: 15, 
-            border: "1px solid #ccc", 
-            borderRadius: 8,
-            background: theme === "dark" ? "#2a2535" : "#fff",
-            minHeight: 60,
-            wordWrap: "break-word",
-            overflowWrap: "break-word",
-            whiteSpace: "pre-wrap",
-            maxWidth: "100%"
-          }}>
-            {aiLoading ? "Loading AI response..." : aiAnswer}
+            {trialIndex < 10 && !aiRevealed && (
+              <ThemedButton
+                active={false}
+                theme={theme}
+                onClick={revealAI}
+                style={{ padding: "8px 12px" }}
+              >
+                Consult AI
+              </ThemedButton>
+            )}
           </div>
-        </>
-      )}
-    </div>
-  )}
-</div>
+        </div>
+
+        {/* RIGHT SIDE — AI ANSWER ONLY */}
+        {trialIndex < 10 && aiRevealed && (
+          <div style={{
+            flex: 1,
+            minWidth: 320,
+            borderLeft: "1px solid #666",
+            paddingLeft: 20
+          }}>
+            <div style={{
+              padding: 15,
+              border: "1px solid #ccc",
+              borderRadius: 8,
+              background: theme === "dark" ? "#2a2535" : "#fff",
+              minHeight: 60,
+              whiteSpace: "pre-wrap",
+            }}>
+              {aiLoading ? "Loading AI response..." : aiAnswer}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
