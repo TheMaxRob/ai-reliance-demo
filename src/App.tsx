@@ -428,8 +428,9 @@ export default function App() {
           </div>
 
           {/* Confidence */}
-          <p style={{ marginTop: 20 }}><strong>Your Confidence (1–7):</strong></p>
+          <p style={{ marginTop: 20 }}><strong>Your Confidence (1 = Least Confident):</strong></p>
           <div>
+            <p></p>
             {[1, 2, 3, 4, 5, 6, 7].map(num => (
               <ThemedButton
                 key={num}
