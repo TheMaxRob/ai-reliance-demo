@@ -342,9 +342,9 @@ export default function App() {
           <p style={{ marginTop: 20, fontSize: 18 }}>
             You will see several True/False claims. Rate your confidence for each answer from 1 (not confident) to 7 (very confident). Confidence rating doesn't affect your score, so please be honest!
             <br /><br />
-            Your goal is to answer as many questions correct as possible. 
+            Your goal is simply <strong>to answer as many questions correct as possible.</strong>
             <br /><br />
-            You will have the option to consult an AI if you are unsure. You are being tested on your ability to answer correctly as well as your ability to utilize AI effectively.
+            You will have the option to consult an AI during the questions. You are being tested on your <strong>knowledge</strong> and your <strong>ability to utilize AI effectively.</strong> 
           </p>
           <button
             onClick={() => setShowIntro(false)}
