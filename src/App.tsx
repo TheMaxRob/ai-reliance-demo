@@ -1,5 +1,14 @@
 import { useMemo, useState } from "react";
 
+
+
+const certainty_number_map = {
+  "No Idea": 1,
+  "Unsure": 2,
+  "Confident": 3,
+  "Certain": 4,
+}
+
 const CLAIMS = [
   { id: 1, claim: "Leaving a laptop plugged in constantly will significantly damage the battery.", correctAnswer: "false" },
   { id: 2, claim: "Your stomach replaces its lining every two to three days.", correctAnswer: "false" },
@@ -514,34 +523,23 @@ export default function App() {
             <p></p>
             <div style={{ position: 'relative' }}>
               <div>
-                {[1, 2, 3, 4, 5, 6, 7].map(num => (
+                {(["No Idea", "Unsure", "Sure", "Certain"] as const).map(word => (
                   <ThemedButton
-                    key={num}
+                    key={word}
                     className={flashClass}
-                    active={initialConfidence === num}
+                    active={initialConfidence === certainty_number_map[word as keyof typeof certainty_number_map]}
                     theme={theme}
-                    onClick={() => setInitialConfidence(num)}
+                    onClick={() => setInitialConfidence(certainty_number_map[word as keyof typeof certainty_number_map])}
                   >
-                    {num}
+                    {word}
                   </ThemedButton>
                 ))}
-              </div>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                marginTop: '8px',
-                fontSize: '14px',
-                width: '55%',
-                color: theme === 'dark' ? '#9ca3af' : '#6b7280'
-              }}>
-                <span>Unsure</span>
-                <span>Absolutely certain</span>
               </div>
             </div>
           </div>
 
           {/* Submit + AI */}
-          <div style={{ display: "flex", gap: 15, alignItems: "center", marginTop: 25 }}>
+          <div style={{ display: "flex", gap: 15, alignItems: "center", marginTop: 45 }}>
             <ThemedButton
               className={flashClass}
               active={false}
