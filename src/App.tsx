@@ -586,7 +586,7 @@ export default function App() {
               {isSubmitting ? "Submitting..." : "Submit Answer"}
             </ThemedButton>
 
-            {trialIndex < 10 && !aiRevealed && (
+            {trialIndex < 14 && !aiRevealed && (
               <ThemedButton
                 active={false}
                 theme={theme}
