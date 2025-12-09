@@ -11,7 +11,7 @@ const certainty_number_map = {
 
 const CLAIMS = [
   { id: 1, claim: "Leaving a laptop plugged in constantly will significantly damage the battery.", correctAnswer: "false" },
-  { id: 2, claim: "Your stomach replaces its lining every two to three days.", correctAnswer: "false" },
+  { id: 2, claim: "Your stomach replaces its lining roughly every 5 days.", correctAnswer: "false" },
   { id: 3, claim: "Africa is larger than the United States, China, and India combined.", correctAnswer: "true" },
   { id: 4, claim: "The Amazon rainforest produces 20% of the world's oxygen.", correctAnswer: "false" },
   { id: 5, claim: "The population of Iceland is more than 300,000 people.", correctAnswer: "true" },
@@ -20,16 +20,16 @@ const CLAIMS = [
   { id: 8, claim: "A basketball will hit the ground before a tennis ball when dropped at the same height.", correctAnswer: "false" },
   { id: 9, claim: "A raincloud weighs more than an 18-wheeler truck.", correctAnswer: "true" },
   { id: 10, claim: "Human bodies contain equal numbers of bacterial and human cells.", correctAnswer: "false" },
-  { id: 11, claim: "Most humans can distinguish about 2 million different colors.", correctAnswer: "false" },
+  { id: 11, claim: "Most humans can distinguish about 1 million different colors.", correctAnswer: "true" },
   { id: 12, claim: "Almost all the dust in your home comes from dead human skin.", correctAnswer: "false" },
   { id: 13, claim: "Humans emit less carbon dioxide walking one mile than a car traveling the same distance.", correctAnswer: "true" },
   { id: 14, claim: "The average person speaks over 16,000 words per day.", correctAnswer: "false" },
   { id: 15, claim: "Most plastic in the ocean comes from rivers.", correctAnswer: "true" },
   { id: 16, claim: "The average adult spends more money on groceries than on subscriptions.", correctAnswer: "true" },
-  { id: 17, claim: "The average person's skin regenerates roughly every 28 days.", correctAnswer: "false" },
+  { id: 17, claim: "The average person's skin can regenerate entirely roughly every 28 days.", correctAnswer: "true" },
   { id: 18, claim: "Around 20% of people who are left-handed are also left-footed.", correctAnswer: "false" },
   { id: 19, claim: "The Great Wall of China is visible from space with the naked eye.", correctAnswer: "false" },
-  { id: 20, claim: "The average person spends about equal time in REM sleep as in deep sleep.", correctAnswer: "true" },
+  { id: 20, claim: "The average person spends close to equal time in REM sleep as in deep sleep.", correctAnswer: "true" },
 ];
 
 // ---------------------------
@@ -436,8 +436,7 @@ export default function App() {
             Your goal is simply <strong>to answer as many questions correct as possible.
             You get 100 points per correct answer (2000 possible).</strong>
             <br /><br />
-            You will likely not know the answer to most of these questions immediately.
-            You will have the option to consult an AI during the questions. You are being
+            You will have the option to consult an AI (GPT 4o mini) during the questions. You are being
             tested on your <strong>knowledge</strong> and your <strong>ability to utilize AI effectively
             to reason an answer to a difficult question.</strong>
           </p>
