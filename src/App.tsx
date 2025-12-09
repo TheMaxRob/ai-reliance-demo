@@ -167,6 +167,7 @@ export default function App() {
   const [tQuestionStart, setTQuestionStart] = useState(Date.now());
   const [tReveal, setTReveal] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitCooldown, setSubmitCooldown] = useState(false);
 
   // NEW FEEDBACK STATES
   const [flashType, setFlashType] = useState<"correct" | "incorrect" | null>(null);
@@ -349,6 +350,9 @@ export default function App() {
       return;
     }
 
+    setSubmitCooldown(true);
+    setTimeout(() => setSubmitCooldown(false), 2000);
+
     const submissionTime = Date.now();
     const timeTotal = submissionTime - tQuestionStart;
     const timeBeforeAI = tReveal ? tReveal - tQuestionStart : null;
@@ -383,14 +387,12 @@ export default function App() {
 
       setResults(prev => {
         const updated = [...prev, trialResult];
-        if (last) sendResultsToSupabase(updated);
+        if (last) {
+          setIsSubmitting(true);
+          sendResultsToSupabase(updated);
+        }
         return updated;
       });
-
-      if (last) {
-        setIsSubmitting(true);
-        return;
-      }
 
       // Reset for next question
       setInitialAnswer(null);
@@ -543,7 +545,7 @@ export default function App() {
               className={flashClass}
               active={false}
               theme={theme}
-              disabled={isSubmitting || initialAnswer === null || initialConfidence === null}
+              disabled={isSubmitting || initialAnswer === null || initialConfidence === null || submitCooldown}
               onClick={submitTrial}
               style={{ maxWidth: 150 }}
             >
