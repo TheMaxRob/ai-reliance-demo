@@ -26,7 +26,7 @@ const CLAIMS = [
   { id: 14, claim: "The average person speaks over 16,000 words per day.", correctAnswer: "false" },
   { id: 15, claim: "Most plastic in the ocean comes from rivers.", correctAnswer: "true" },
   { id: 16, claim: "The average adult spends more money on groceries than on subscriptions.", correctAnswer: "true" },
-  { id: 17, claim: "The average person's skin can regenerate entirely roughly every 28 days.", correctAnswer: "true" },
+  { id: 17, claim: "A human's skin is able to regenerate entirely roughly every 28 days.", correctAnswer: "true" },
   { id: 18, claim: "Around 20% of people who are left-handed are also left-footed.", correctAnswer: "false" },
   { id: 19, claim: "The Great Wall of China is visible from space with the naked eye.", correctAnswer: "false" },
   { id: 20, claim: "The average person spends close to equal time in REM sleep as in deep sleep.", correctAnswer: "true" },
