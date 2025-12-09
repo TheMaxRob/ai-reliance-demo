@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 
 
@@ -149,7 +149,7 @@ function shuffleArray(arr: any[]) {
 // ---------------------------
 export default function App() {
   const shuffledClaims = useMemo(() => shuffleArray(CLAIMS), []);
-  const [, setResults] = useState<TrialResult[]>([]);
+  const [results, setResults] = useState<TrialResult[]>([]);
   const participantID = useMemo(() => crypto.randomUUID(), []);
   const [showIntro, setShowIntro] = useState(true);
   const [trialIndex, setTrialIndex] = useState(0);
@@ -202,6 +202,17 @@ export default function App() {
     }
   `;
   
+
+  useEffect(() => {
+    const allDone = results.length === shuffledClaims.length;
+
+    if (allDone && !hasSubmitted) {
+      setHasSubmitted(true);
+      setIsSubmitting(true);
+      sendResultsToSupabase(results);
+    }
+  }, [results, shuffledClaims.length, hasSubmitted]);
+
   const Leaderboard = ({ theme }: { theme: "light" | "dark" }) => {
     const isDark = theme === "dark";
 
@@ -384,27 +395,16 @@ export default function App() {
         score: isCorrect ? 100 : 0,
       };
 
-      const last = trialIndex + 1 >= shuffledClaims.length;
+      setResults(prev => [...prev, trialResult]);
 
-      setResults(prev => {
-        const updated = [...prev, trialResult];
-        if (last && !hasSubmitted) {
-          setHasSubmitted(true);
-          setIsSubmitting(true);
-          sendResultsToSupabase(updated);
-        }
-        return updated;
-      });
-
-
-      // Reset for next question
-      setInitialAnswer(null);
-      setInitialConfidence(null);
-      setAiRevealed(false);
-      setAiAnswer("");
-      setTReveal(null);
-      setTQuestionStart(Date.now());
-      setTrialIndex(i => i + 1);
+    // Reset for next question
+    setInitialAnswer(null);
+    setInitialConfidence(null);
+    setAiRevealed(false);
+    setAiAnswer("");
+    setTReveal(null);
+    setTQuestionStart(Date.now());
+    setTrialIndex(i => i + 1);
 
     }, 1000);
   }
