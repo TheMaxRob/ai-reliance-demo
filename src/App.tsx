@@ -171,6 +171,7 @@ export default function App() {
 
   // NEW FEEDBACK STATES
   const [flashType, setFlashType] = useState<"correct" | "incorrect" | null>(null);
+  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 
   const trial = shuffledClaims[trialIndex];
 
@@ -387,12 +388,14 @@ export default function App() {
 
       setResults(prev => {
         const updated = [...prev, trialResult];
-        if (last) {
+        if (last && !hasSubmitted) {
+          setHasSubmitted(true);
           setIsSubmitting(true);
           sendResultsToSupabase(updated);
         }
         return updated;
       });
+
 
       // Reset for next question
       setInitialAnswer(null);
@@ -524,7 +527,7 @@ export default function App() {
             <p></p>
             <div style={{ position: 'relative' }}>
               <div>
-                {(["No Idea", "Unsure", "Sure", "Certain"] as const).map(word => (
+                {(["No Idea", "Unsure", "Confident", "Certain"] as const).map(word => (
                   <ThemedButton
                     key={word}
                     className={flashClass}
