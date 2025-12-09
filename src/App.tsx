@@ -11,7 +11,7 @@ const certainty_number_map = {
 
 const CLAIMS = [
   { id: 1, claim: "Leaving a laptop plugged in constantly will significantly damage the battery.", correctAnswer: "false" },
-  { id: 2, claim: "Your stomach replaces its lining roughly every 5 days.", correctAnswer: "false" },
+  { id: 2, claim: "Your stomach replaces its lining roughly every 5 days.", correctAnswer: "true" },
   { id: 3, claim: "Africa is larger than the United States, China, and India combined.", correctAnswer: "true" },
   { id: 4, claim: "The Amazon rainforest produces 20% of the world's oxygen.", correctAnswer: "false" },
   { id: 5, claim: "The population of Iceland is more than 300,000 people.", correctAnswer: "true" },
