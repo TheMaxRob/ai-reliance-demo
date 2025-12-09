@@ -305,6 +305,9 @@ export default function App() {
 
   async function revealAI() {
     if (!aiRevealed) {
+      // Prevent crash if trial is undefined
+      if (!trial) return;
+
       setTReveal(Date.now());
       setAiRevealed(true);
       setAiLoading(true);
@@ -314,6 +317,7 @@ export default function App() {
       setAiLoading(false);
     }
   }
+
 
   async function sendResultsToSupabase(finalResults: TrialResult[]) {
     console.log("Sending to Supabase:", finalResults);
@@ -361,6 +365,10 @@ export default function App() {
       alert("Please answer + give confidence.");
       return;
     }
+
+    // Prevent crash if trial is undefined
+    if (!trial) return;
+
 
     setSubmitCooldown(true);
     setTimeout(() => setSubmitCooldown(false), 2000);
@@ -472,6 +480,29 @@ export default function App() {
 
   const bg = theme === "dark" ? "#1b1924" : "#fafafa";
   const text = theme === "dark" ? "white" : "#222";
+
+  // If user has answered all questions → stop rendering question UI
+  if (trialIndex >= shuffledClaims.length) {
+    return (
+      <div
+        style={{
+          width: "100vw",
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          background: theme === "dark" ? "#1b1924" : "#fafafa",
+          color: theme === "dark" ? "white" : "#222",
+          fontSize: 24,
+          fontFamily: "sans-serif",
+        }}
+      >
+        {isSubmitting
+          ? "Submitting your results..."
+          : "Finished! Submitting results..."}
+      </div>
+    );
+  }
 
   return (
     <div
