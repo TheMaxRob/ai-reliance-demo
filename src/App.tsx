@@ -509,20 +509,35 @@ export default function App() {
           </div>
 
           {/* Confidence */}
-          <p style={{ marginTop: 20 }}><strong>Your Confidence (1 = Least Confident):</strong></p>
+          <p style={{ marginTop: 20 }}><strong>Your Confidence:</strong></p>
           <div>
             <p></p>
-            {[1, 2, 3, 4, 5, 6, 7].map(num => (
-              <ThemedButton
-                key={num}
-                className={flashClass}
-                active={initialConfidence === num}
-                theme={theme}
-                onClick={() => setInitialConfidence(num)}
-              >
-                {num}
-              </ThemedButton>
-            ))}
+            <div style={{ position: 'relative' }}>
+              <div>
+                {[1, 2, 3, 4, 5, 6, 7].map(num => (
+                  <ThemedButton
+                    key={num}
+                    className={flashClass}
+                    active={initialConfidence === num}
+                    theme={theme}
+                    onClick={() => setInitialConfidence(num)}
+                  >
+                    {num}
+                  </ThemedButton>
+                ))}
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                marginTop: '8px',
+                fontSize: '14px',
+                width: '55%',
+                color: theme === 'dark' ? '#9ca3af' : '#6b7280'
+              }}>
+                <span>Unsure</span>
+                <span>Absolutely certain</span>
+              </div>
+            </div>
           </div>
 
           {/* Submit + AI */}
