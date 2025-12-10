@@ -1,14 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 
-
-
-const certainty_number_map = {
-  "No Idea": 1,
-  "Unsure": 2,
-  "Confident": 3,
-  "Certain": 4,
-}
-
 const CLAIMS = [
   { id: 1, claim: "Leaving a laptop plugged in constantly will significantly damage the battery.", correctAnswer: "false" },
   { id: 2, claim: "Your stomach replaces its lining roughly every 5 days.", correctAnswer: "true" },
@@ -130,9 +121,6 @@ interface TrialResult {
   trial: number;
   claim: string;
   answer: boolean;
-  confidence: number;
-  aiOffered: boolean;
-  aiUsed: boolean;
   isCorrect: boolean;
   timeBeforeAI: number | null;
   timeAfterAI: number | null;
@@ -154,8 +142,7 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [trialIndex, setTrialIndex] = useState(0);
 
-  const [initialAnswer, setInitialAnswer] = useState<boolean | null>(null);
-  const [initialConfidence, setInitialConfidence] = useState<number | null>(null);
+  const [finalAnswer, setFinalAnswer] = useState<boolean | null>(null);
 
   const [aiRevealed, setAiRevealed] = useState(false);
   const [aiAnswer, setAiAnswer] = useState("");
@@ -303,21 +290,22 @@ export default function App() {
     }
   }
 
-  async function revealAI() {
-    if (!aiRevealed) {
-      // Prevent crash if trial is undefined
-      if (!trial) return;
+  // Automatically reveal AI when a new trial loads (for first 14 trials)
+  useEffect(() => {
+    if (!trial) return;
 
-      setTReveal(Date.now());
-      setAiRevealed(true);
-      setAiLoading(true);
+    // Always fetch a new AI answer when trial changes
+    setAiLoading(true);
+    setAiAnswer("");
+    setTReveal(null);
 
-      const answer = await getAIAnswer(trial.claim);
+    getAIAnswer(trial.claim).then(answer => {
       setAiAnswer(answer);
+      setTReveal(Date.now());
       setAiLoading(false);
-    }
-  }
+    });
 
+  }, [trialIndex]);
 
   async function sendResultsToSupabase(finalResults: TrialResult[]) {
     console.log("Sending to Supabase:", finalResults);
@@ -328,9 +316,6 @@ export default function App() {
         trial: r.trial,
         claim: r.claim,
         answer: r.answer,
-        confidence: r.confidence,
-        ai_offered: r.aiOffered,
-        ai_used: r.aiUsed,
         is_correct: r.isCorrect,
         time_before_ai: r.timeBeforeAI,
         time_after_ai: r.timeAfterAI,
@@ -361,14 +346,7 @@ export default function App() {
   }
 
   function submitTrial() {
-    if (initialAnswer === null || initialConfidence === null) {
-      alert("Please answer + give confidence.");
-      return;
-    }
-
-    // Prevent crash if trial is undefined
     if (!trial) return;
-
 
     setSubmitCooldown(true);
     setTimeout(() => setSubmitCooldown(false), 2000);
@@ -378,24 +356,18 @@ export default function App() {
     const timeBeforeAI = tReveal ? tReveal - tQuestionStart : null;
     const timeAfterAI = tReveal ? submissionTime - tReveal : null;
 
-    const isCorrect = initialAnswer === (trial.correctAnswer === "true");
+    const isCorrect = finalAnswer === (trial.correctAnswer === "true");
 
-    // Start flashing
     setFlashType(isCorrect ? "correct" : "incorrect");
-
     setTimeout(() => setFlashType(null), 600);
 
-    // Delay so user sees flash
     setTimeout(() => {
       if (isCorrect) setScore(s => s + 100);
 
       const trialResult: TrialResult = {
         trial: trial.id,
         claim: trial.claim,
-        answer: initialAnswer,
-        confidence: initialConfidence,
-        aiOffered: trialIndex < 10,
-        aiUsed: aiRevealed,
+        answer: finalAnswer ? true : false,
         isCorrect,
         timeBeforeAI,
         timeAfterAI,
@@ -404,18 +376,20 @@ export default function App() {
       };
 
       setResults(prev => [...prev, trialResult]);
+      setFinalAnswer(null);
 
-    // Reset for next question
-    setInitialAnswer(null);
-    setInitialConfidence(null);
-    setAiRevealed(false);
-    setAiAnswer("");
-    setTReveal(null);
-    setTQuestionStart(Date.now());
-    setTrialIndex(i => i + 1);
+      // Switch UI back to "answer" stage
 
+      // NOW safe to clear AI state
+      setAiAnswer("");
+      setTReveal(null);
+
+      // Move to next question
+      setTQuestionStart(Date.now());
+      setTrialIndex(i => i + 1);
     }, 1000);
   }
+
 
   // Intro screen
   if (showIntro) {
@@ -535,42 +509,21 @@ export default function App() {
           <div>
             <ThemedButton
               className={flashClass}
-              active={initialAnswer === true}
+              active={finalAnswer === true}
               theme={theme}
-              onClick={() => setInitialAnswer(true)}
+              onClick={() => setFinalAnswer(true)}
             >
               True
             </ThemedButton>
 
             <ThemedButton
               className={flashClass}
-              active={initialAnswer === false}
+              active={finalAnswer === false}
               theme={theme}
-              onClick={() => setInitialAnswer(false)}
+              onClick={() => setFinalAnswer(false)}
             >
               False
             </ThemedButton>
-          </div>
-
-          {/* Confidence */}
-          <p style={{ marginTop: 20 }}><strong>Your Confidence:</strong></p>
-          <div>
-            <p></p>
-            <div style={{ position: 'relative' }}>
-              <div>
-                {(["No Idea", "Unsure", "Confident", "Certain"] as const).map(word => (
-                  <ThemedButton
-                    key={word}
-                    className={flashClass}
-                    active={initialConfidence === certainty_number_map[word as keyof typeof certainty_number_map]}
-                    theme={theme}
-                    onClick={() => setInitialConfidence(certainty_number_map[word as keyof typeof certainty_number_map])}
-                  >
-                    {word}
-                  </ThemedButton>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Submit + AI */}
@@ -579,23 +532,13 @@ export default function App() {
               className={flashClass}
               active={false}
               theme={theme}
-              disabled={isSubmitting || initialAnswer === null || initialConfidence === null || submitCooldown}
+              disabled={isSubmitting || finalAnswer === null || submitCooldown}
               onClick={submitTrial}
               style={{ maxWidth: 150 }}
             >
               {isSubmitting ? "Submitting..." : "Submit Answer"}
             </ThemedButton>
 
-            {trialIndex < 14 && !aiRevealed && (
-              <ThemedButton
-                active={false}
-                theme={theme}
-                onClick={revealAI}
-                style={{ padding: "8px 12px" }}
-              >
-                Consult AI
-              </ThemedButton>
-            )}
           </div>
         </div>
 
@@ -612,8 +555,8 @@ export default function App() {
           }}
         >
 
-          {/* AI Answer only shows during first 10 trials when revealed */}
-          {trialIndex < 10 && aiRevealed && (
+          {/* AI Answer only shows during first 14 trials when revealed */}
+          {trialIndex < 14 && (
             <div
               style={{
                 padding: 15,
