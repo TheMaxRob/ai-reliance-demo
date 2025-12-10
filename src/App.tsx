@@ -394,7 +394,7 @@ export default function App() {
         claim: trial.claim,
         answer: initialAnswer,
         confidence: initialConfidence,
-        aiOffered: trialIndex < 10,
+        aiOffered: trialIndex < 14,
         aiUsed: aiRevealed,
         isCorrect,
         timeBeforeAI,
@@ -613,7 +613,7 @@ export default function App() {
         >
 
           {/* AI Answer only shows during first 10 trials when revealed */}
-          {trialIndex < 10 && aiRevealed && (
+          {trialIndex < 14 && aiRevealed && (
             <div
               style={{
                 padding: 15,
